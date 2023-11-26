@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="column is-6 is-offset-3">
+    <h3 class="title">Your Account</h3>
+
+    <div class="box">
+        <table class="table">
+        <tbody>
+            <tr>
+                <th>Account No.</th>
+                <th>{{ current_user.id }}</th>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <th>{{ current_user.email }}</th>
+            </tr>
+            <tr>
+                <th>First Name</th>
+                <th>{{ current_user.firstname }}</th>
+            </tr>
+            <tr>
+                <th>Last Name</th>
+                <th>{{ current_user.lastname }}</th>
+            </tr>
+            <tr>
+                <th>Phone No.</th>
+                <th>{{ current_user.phone }}</th>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+    <div class="column is-8 is-offset-2"></div>
+        <h4 class="title is-4">Change Password</h4>
+        <div class="box"></div>
+        <!--Redirects to a new page in order to change the password-->
+        <a href="{{ url_for('users.change_password')}}" class="button is-info is centered">Change Password</a>
+    </div>
+
+{% endblock %}
