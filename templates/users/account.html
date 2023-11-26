@@ -4,6 +4,14 @@
 
 <div class="column is-6 is-offset-3">
     <h3 class="title">Your Account</h3>
+    <div class="box">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}. Go to <a href="{{ url_for('users.account') }}">login page</a>.
+                    </div>
+                {% endif %}
+            {% endwith %}
 
     <div class="box">
         <table class="table">
@@ -33,9 +41,10 @@
     </div>
     <div class="column is-8 is-offset-2"></div>
         <h4 class="title is-4">Change Password</h4>
-        <div class="box"></div>
+        <div class="box">
         <!--Redirects to a new page in order to change the password-->
         <a href="{{ url_for('users.change_password')}}" class="button is-info is centered">Change Password</a>
+        </div>
     </div>
 
 {% endblock %}

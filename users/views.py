@@ -1,11 +1,11 @@
 # IMPORTS
 from flask import Blueprint, render_template, flash, redirect, url_for, session
-from flask_login import logout_user, login_user
+from flask_login import logout_user, login_user, current_user
 from markupsafe import Markup
 
 from app import db
 from models import User
-from users.forms import RegisterForm, LoginForm
+from users.forms import RegisterForm, LoginForm, ChangePassword
 
 
 # CONFIG
@@ -50,6 +50,36 @@ def register():
         return redirect(url_for('users.setup_2fa'))
     # if request method is GET or form not valid re-render signup page
     return render_template('users/register.html', form=form)
+
+@users_blueprint.route('/change password', methods=['GET', 'POST'])
+def change_password():
+    # Check if the user is logged in
+    if not current_user.is_authenticated:
+        return redirect(url_for('users.login'))
+
+    form = ChangePassword()
+
+    if form.validate_on_submit():
+
+        # Verify current password
+        if current_user.verify_password(form.current_password.data):
+
+            if current_user.password != form.new_password.data:
+
+                # Update user's password
+                current_user.password = form.new_password.data
+                db.session.commit()
+
+                flash('Your password has been updated.')
+                return redirect(url_for('users.account'))
+
+            flash('New password cannot be the same as previous one')
+            return render_template('users/change_password.html', form=form)
+
+        flash('Current password is incorrect.')
+        return render_template('users/change_password.html', form=form)
+
+    return render_template('users/change_password.html', form=form)
 
 
 # view user login
