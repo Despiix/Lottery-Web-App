@@ -80,7 +80,7 @@ class RegisterForm(FlaskForm):
     dateOfBirth = StringField(validators=[DataRequired(), validate_DOB])
     phone = StringField(validators=[DataRequired(), validate_phone])
     postcode = StringField(validators=[DataRequired(), validate_post_code])
-    password = PasswordField(validators=[DataRequired()])
+    password = PasswordField(validators=[DataRequired(), validate_password])
     confirm_password = PasswordField(validators=[DataRequired(), EqualTo('password',
                                                                          message='Passwords do not match')])
     submit = SubmitField()
@@ -96,7 +96,7 @@ class LoginForm(FlaskForm):
 
 class ChangePassword(FlaskForm):
     current_password = PasswordField(validators=[DataRequired()])
-    new_password = PasswordField(validators=[DataRequired()])
+    new_password = PasswordField(validators=[DataRequired(), validate_password])
     confirm_new_password = PasswordField(validators=[DataRequired(), EqualTo('new_password',
                                                                              message='Passwords do not match')])
     submit = SubmitField()
