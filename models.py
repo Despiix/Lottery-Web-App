@@ -23,6 +23,7 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(100), nullable=False, default='user')
     registrationDate = db.Column(db.DateTime, nullable=False)
     logInDateTime = db.Column(db.DateTime, nullable=False)
+    prevLoginDateTime = db.Column(db.DateTime, nullable=False)
 
     # Define the relationship to Draw
     draws = db.relationship('Draw')
@@ -38,6 +39,7 @@ class User(db.Model, UserMixin):
         self.postcode = postcode
         self.registrationDate = datetime.now()
         self.logInDateTime = None
+        self.prevLoginDateTime = None
 
     def verify_pin(self, pin_key):
         return pyotp.TOTP(self.pin_key).verify(pin_key)

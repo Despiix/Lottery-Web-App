@@ -104,6 +104,8 @@ def login():
                   '{} login attempts remaining'.format(3 - session.get('authentication_attempts')))
             return render_template('users/login.html', form=form)
         login_user(user)
+        logging.warning('SECURITY - New LogIn [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
+        current_user.prevLoginDateTime = current_user.logInDateTime
         current_user.logInDateTime = datetime.now()
         db.session.commit()
         return redirect(url_for('lottery.lottery'))
