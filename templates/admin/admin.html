@@ -61,8 +61,6 @@
     </div>
 </div>
 <div class="column is-10 is-offset-1">
-
-
     <h4 class="title is-4">Current Users</h4>
     <div class="box">
         {% if current_users %}
@@ -123,6 +121,37 @@
         </form>
         </div>
     </div>
-
+<div class="column is-10 is-offset-1">
+    <h4 class="title is-4">User Activity Logs</h4>
+    <div class="box">
+        {% if users %}
+            <div class="field">
+                <table class="table">
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Registration Date</th>
+                        <th>Current Log-In </th>
+                        <th>Previous Log-In</th>
+                    </tr>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.registrationDate }}</td>
+                            <td>{{ user.logInDateTime }}</td>
+                            <td>{{ user.prevLoginDateTime }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% endif %}
+        <form method="POST" action="/view_user_activity">
+            <div>
+                <button class="button is-info is-centered">View User Activity</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}

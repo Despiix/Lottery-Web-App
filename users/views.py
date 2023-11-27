@@ -8,17 +8,24 @@ from functools import wraps
 from app import db, logging
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePassword
+from templates import admin
 
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 # Access Control
-def requires_roles(*roles):
+def requires_roles(*role):
     def wrapper(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            if current_user.role not in roles:
+            if not current_user or current_user.role not in role:
+                # Log the unauthorized access attempt
+                logging.warning(f'Unauthorized Access [%s, %s, %s, %s]',
+                                current_user.id,
+                                current_user.email,
+                                current_user.role,
+                                request.remote_addr)
                 return render_template('error_handlers/403.html')
             return f(*args, **kwargs)
         return wrapped
@@ -103,7 +110,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.username.data).first()
         if not user or not user.verify_password(form.password.data) or not user.verify_post_code(form.postcode.data) or not user.verify_pin(form.auth_pin.data):
-            logging.warning('SECURITY - LogIn Attempt [%s, %s]', current_user.email, request.remote_addr)
+            logging.warning('SECURITY - LogIn Attempt [%s, %s]', form.username.data, request.remote_addr)
             session['authentication_attempts'] += 1
             if session.get('authentication_attempts') >= 3:
                 flash(Markup('Number of incorrect login attempts exceeded.'
@@ -118,7 +125,10 @@ def login():
         current_user.prevLoginDateTime = current_user.logInDateTime
         current_user.logInDateTime = datetime.now()
         db.session.commit()
-        return redirect(url_for('lottery.lottery'))
+        if current_user.role != 'admin':
+            return redirect(url_for('lottery.lottery'))
+        else:
+            return redirect(url_for('admin.admin'))
     return render_template('users/login.html', form=form)
 
 @users_blueprint.route('/logout')

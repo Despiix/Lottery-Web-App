@@ -188,3 +188,10 @@ def logs():
         content.reverse()
 
     return render_template('admin/admin.html', logs=content, name="PLACEHOLDER FOR FIRSTNAME")
+
+# View User Activity
+@admin_blueprint.route('/view_user_activity', methods=['POST'])
+def view_user_activity():
+
+    current_users = User.query.filter_by(role='user').all()
+    return render_template('admin/admin.html', name="PLACEHOLDER FOR FIRSTNAME", users=current_users)
