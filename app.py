@@ -1,4 +1,5 @@
 # IMPORTS
+import logging
 import os
 
 from flask import Flask, render_template
@@ -6,6 +7,21 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_qrcode import QRcode
 from flask_login import LoginManager
 from dotenv import load_dotenv
+
+class SecurityFilter(logging.Filter):
+
+    def filter(self, record):
+        return 'SECURITY' in record.getMessage()
+
+# log config
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler('lottery.log', 'a')
+file_handler.setLevel(logging.WARNING)
+file_handler.addFilter(SecurityFilter())
+formatter = logging.Formatter('%(asctime)s : %(message)s', '%m/%d/%Y %I:%M:%S %p')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 # CONFIG
 app = Flask(__name__)

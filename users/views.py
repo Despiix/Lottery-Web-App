@@ -1,9 +1,10 @@
 # IMPORTS
-from flask import Blueprint, render_template, flash, redirect, url_for, session
+from flask import Blueprint, render_template, flash, redirect, url_for, session, request
 from flask_login import logout_user, login_user, current_user
 from markupsafe import Markup
+from datetime import datetime
 
-from app import db
+from app import db, logging
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePassword
 
@@ -43,6 +44,8 @@ def register():
         # add the new user to the database
         db.session.add(new_user)
         db.session.commit()
+
+        logging.warning('SECURITY - New User Registration [%s, %s]', form.email.data, request.remote_addr)
 
         session['email']= new_user.email
 
@@ -101,6 +104,8 @@ def login():
                   '{} login attempts remaining'.format(3 - session.get('authentication_attempts')))
             return render_template('users/login.html', form=form)
         login_user(user)
+        current_user.logInDateTime = datetime.now()
+        db.session.commit()
         return redirect(url_for('lottery.lottery'))
     return render_template('users/login.html', form=form)
 
