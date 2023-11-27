@@ -1,8 +1,9 @@
 # IMPORTS
 from flask import Blueprint, render_template, flash, redirect, url_for, session, request
-from flask_login import logout_user, login_user, current_user
+from flask_login import logout_user, login_user, current_user, login_required
 from markupsafe import Markup
 from datetime import datetime
+from functools import wraps
 
 from app import db, logging
 from models import User
@@ -12,6 +13,16 @@ from users.forms import RegisterForm, LoginForm, ChangePassword
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
+# Access Control
+def requires_roles(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if current_user.role not in roles:
+                return render_template('error_handlers/403.html')
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
 
 # VIEWS
 # view registration
@@ -55,11 +66,9 @@ def register():
     return render_template('users/register.html', form=form)
 
 @users_blueprint.route('/change password', methods=['GET', 'POST'])
+@login_required
+@requires_roles('user')
 def change_password():
-    # Check if the user is logged in
-    if not current_user.is_authenticated:
-        return redirect(url_for('users.login'))
-
     form = ChangePassword()
 
     if form.validate_on_submit():
@@ -94,6 +103,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.username.data).first()
         if not user or not user.verify_password(form.password.data) or not user.verify_post_code(form.postcode.data) or not user.verify_pin(form.auth_pin.data):
+            logging.warning('SECURITY - LogIn Attempt [%s, %s]', current_user.email, request.remote_addr)
             session['authentication_attempts'] += 1
             if session.get('authentication_attempts') >= 3:
                 flash(Markup('Number of incorrect login attempts exceeded.'
@@ -112,12 +122,17 @@ def login():
     return render_template('users/login.html', form=form)
 
 @users_blueprint.route('/logout')
+@login_required
+@requires_roles('user', 'admin')
 def logout():
+    logging.warning('SECURITY - User Log Out [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
     logout_user()
     return redirect(url_for('index'))
 
 # view user account
 @users_blueprint.route('/account')
+@login_required
+@requires_roles('user', 'admin')
 def account():
     return render_template('users/account.html',
                            acc_no="PLACEHOLDER FOR USER ID",
