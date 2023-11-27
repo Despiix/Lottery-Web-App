@@ -117,7 +117,9 @@ def account():
                            email="PLACEHOLDER FOR USER EMAIL",
                            firstname="PLACEHOLDER FOR USER FIRSTNAME",
                            lastname="PLACEHOLDER FOR USER LASTNAME",
-                           phone="PLACEHOLDER FOR USER PHONE")
+                           phone="PLACEHOLDER FOR USER PHONE",
+                           postcode="PLACEHOLDER FOR POST CODE",
+                           dateOfBirth="PLACEHOLDER FOR DATE OF BIRTH")
 
 @users_blueprint.route('/setup_2fa')
 def setup_2fa():
