@@ -24,6 +24,9 @@ class User(db.Model, UserMixin):
     registrationDate = db.Column(db.DateTime, nullable=False)
     logInDateTime = db.Column(db.DateTime, nullable=False)
     prevLoginDateTime = db.Column(db.DateTime, nullable=False)
+    ipCurrent = db.Column(db.String(100), nullable=False)
+    ipLast = db.Column(db.String(100), nullable=True)
+    successfulLogins = db.Column(db.Integer, nullable=True)
 
     # Define the relationship to Draw
     draws = db.relationship('Draw')
@@ -40,6 +43,9 @@ class User(db.Model, UserMixin):
         self.registrationDate = datetime.now()
         self.logInDateTime = None
         self.prevLoginDateTime = None
+        self.ipCurrent = None
+        self.ipLast = None
+        self.successfulLogins = 0
 
     def verify_pin(self, pin_key):
         return pyotp.TOTP(self.pin_key).verify(pin_key)

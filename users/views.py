@@ -121,9 +121,13 @@ def login():
                   '{} login attempts remaining'.format(3 - session.get('authentication_attempts')))
             return render_template('users/login.html', form=form)
         login_user(user)
+        current_user.successfulLogins = 0
         logging.warning('SECURITY - New LogIn [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
         current_user.prevLoginDateTime = current_user.logInDateTime
         current_user.logInDateTime = datetime.now()
+        current_user.ipLast = current_user.ipCurrent
+        current_user.ipCurrent = request.remote_addr
+        current_user.successfulLogins += 1
         db.session.commit()
         if current_user.role != 'admin':
             return redirect(url_for('lottery.lottery'))
