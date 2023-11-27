@@ -133,6 +133,9 @@
                         <th>Registration Date</th>
                         <th>Current Log-In </th>
                         <th>Previous Log-In</th>
+                        <th>Current IP</th>
+                        <th>Previous IP</th>
+                        <th>Total Successful log ins</th>
                     </tr>
                     {% for user in users %}
                         <tr>
@@ -141,6 +144,9 @@
                             <td>{{ user.registrationDate }}</td>
                             <td>{{ user.logInDateTime }}</td>
                             <td>{{ user.prevLoginDateTime }}</td>
+                            <td>{{ user.ipCurrent }}</td>
+                            <td>{{ user.ipLast }}</td>
+                            <td>{{ user.successfulLogins }}</td>
                         </tr>
                     {% endfor %}
                 </table>

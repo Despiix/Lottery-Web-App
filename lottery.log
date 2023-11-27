@@ -25,3 +25,5 @@
 11/27/2023 05:36:12 PM : SECURITY - New LogIn [2, despi@gmail.com, 127.0.0.1]
 11/27/2023 05:37:52 PM : SECURITY - New LogIn [2, despi@gmail.com, 127.0.0.1]
 11/27/2023 05:38:21 PM : SECURITY - User Log Out [2, despi@gmail.com, 127.0.0.1]
+11/27/2023 05:44:12 PM : SECURITY - LogIn Attempt [admin@email.com, 127.0.0.1]
+11/27/2023 05:44:22 PM : SECURITY - New LogIn [1, admin@email.com, 127.0.0.1]
