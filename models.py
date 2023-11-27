@@ -21,6 +21,8 @@ class User(db.Model, UserMixin):
     postcode = db.Column(db.String(100), nullable=False)
     dateOfBirth = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), nullable=False, default='user')
+    registrationDate = db.Column(db.DateTime, nullable=False)
+    registrationTime = db.Column(db.DateTime, nullable=False)
 
     # Define the relationship to Draw
     draws = db.relationship('Draw')
