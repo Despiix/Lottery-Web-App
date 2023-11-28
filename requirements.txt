@@ -8,3 +8,5 @@ email_validator
 flask-qrcode
 pyotp
 python-dotenv
+cryptography
+bcrypt
