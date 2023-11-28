@@ -34,7 +34,8 @@ def create_draw():
                           + str(form.number5.data) + ' '
                           + str(form.number6.data))
         # create a new draw with the form data.
-        new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False, lottery_round=0)
+        new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False,
+                        lottery_round=0, postkey=current_user.postkey)
         # add the new draw to the database
         db.session.add(new_draw)
         db.session.commit()

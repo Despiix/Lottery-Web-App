@@ -33,3 +33,6 @@
 11/28/2023 01:10:45 PM : SECURITY - Unauthenticated User Access [127.0.0.1]
 11/28/2023 01:24:34 PM : SECURITY - Unauthenticated User Access [127.0.0.1]
 11/28/2023 01:24:35 PM : SECURITY - Unauthenticated User Access [127.0.0.1]
+11/28/2023 02:17:06 PM : SECURITY - New User Registration [cryptchecker@gmail.com, 127.0.0.1]
+11/28/2023 02:19:36 PM : SECURITY - New User Registration [despi@gmail.com, 127.0.0.1]
+11/28/2023 02:20:38 PM : SECURITY - New LogIn [9, despi@gmail.com, 127.0.0.1]
