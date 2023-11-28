@@ -3,30 +3,34 @@ from flask import Blueprint, render_template, flash, redirect, url_for, session,
 from flask_login import logout_user, login_user, current_user, login_required
 from markupsafe import Markup
 from datetime import datetime
+from app import logging
 from functools import wraps
 
-from app import db, logging
+from app import db
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePassword
-from templates import admin
-
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
+
 # Access Control
-def requires_roles(*role):
+def requires_roles(*roles):
     def wrapper(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            if not current_user or current_user.role not in role:
-                # Log the unauthorized access attempt
-                logging.warning(f'Unauthorized Access [%s, %s, %s, %s]',
-                                current_user.id,
-                                current_user.email,
-                                current_user.role,
-                                request.remote_addr)
-                return render_template('error_handlers/403.html')
+            if current_user.is_authenticated:
+                if current_user.role not in roles:
+                    # Log the unauthorized access attempt
+                    logging.warning(f'Unauthorized Access [%s, %s, %s, %s]',
+                                    current_user.id,
+                                    current_user.email,
+                                    current_user.role,
+                                    request.remote_addr)
+                    return render_template('error_handlers/403.html')
+            else:
+                logging.warning('SECURITY - Unauthenticated User Access [%s]', request.remote_addr)
+                return render_template('error_handlers/403.html'), 403
             return f(*args, **kwargs)
         return wrapped
     return wrapper
@@ -65,16 +69,17 @@ def register():
 
         logging.warning('SECURITY - New User Registration [%s, %s]', form.email.data, request.remote_addr)
 
-        session['email']= new_user.email
+        session['email'] = new_user.email
 
         # sends user to login page
         return redirect(url_for('users.setup_2fa'))
     # if request method is GET or form not valid re-render signup page
     return render_template('users/register.html', form=form)
 
+
 @users_blueprint.route('/change password', methods=['GET', 'POST'])
-@login_required
 @requires_roles('user')
+@login_required
 def change_password():
     form = ChangePassword()
 
@@ -84,7 +89,6 @@ def change_password():
         if current_user.verify_password(form.current_password.data):
 
             if current_user.password != form.new_password.data:
-
                 # Update user's password
                 current_user.password = form.new_password.data
                 db.session.commit()
@@ -109,7 +113,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.username.data).first()
-        if not user or not user.verify_password(form.password.data) or not user.verify_post_code(form.postcode.data) or not user.verify_pin(form.auth_pin.data):
+        if not user or not user.verify_password(form.password.data) or not user.verify_post_code(
+                form.postcode.data) or not user.verify_pin(form.auth_pin.data):
             logging.warning('SECURITY - LogIn Attempt [%s, %s]', form.username.data, request.remote_addr)
             session['authentication_attempts'] += 1
             if session.get('authentication_attempts') >= 3:
@@ -135,18 +140,20 @@ def login():
             return redirect(url_for('admin.admin'))
     return render_template('users/login.html', form=form)
 
+
 @users_blueprint.route('/logout')
-@login_required
 @requires_roles('user', 'admin')
+@login_required
 def logout():
     logging.warning('SECURITY - User Log Out [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
     logout_user()
     return redirect(url_for('index'))
 
+
 # view user account
 @users_blueprint.route('/account')
-@login_required
 @requires_roles('user', 'admin')
+@login_required
 def account():
     return render_template('users/account.html',
                            acc_no="PLACEHOLDER FOR USER ID",
@@ -156,6 +163,7 @@ def account():
                            phone="PLACEHOLDER FOR USER PHONE",
                            postcode="PLACEHOLDER FOR POST CODE",
                            dateOfBirth="PLACEHOLDER FOR DATE OF BIRTH")
+
 
 @users_blueprint.route('/setup_2fa')
 def setup_2fa():
@@ -169,6 +177,7 @@ def setup_2fa():
     del session['email']
 
     return render_template('users/setup_2fa.html', email=user.email, uri=user.get_2fa_uri())
+
 
 @users_blueprint.route('/reset')
 def reset():
