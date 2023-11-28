@@ -4,6 +4,7 @@ from app import db, app
 from flask_login import UserMixin
 from datetime import datetime
 from cryptography.fernet import Fernet
+import bcrypt
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -40,7 +41,7 @@ class User(db.Model, UserMixin):
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
-        self.password = password
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         self.role = role
         self.dateOfBirth = dateOfBirth
         self.postcode = postcode
@@ -62,7 +63,7 @@ class User(db.Model, UserMixin):
         return self.postcode == postcode
 
     def verify_password(self, password):
-        return self.password == password
+        return bcrypt.checkpw(password.encode('utf-8'), self.password)
 
 def encrypt(data, postkey):
     return Fernet(postkey).encrypt(bytes(data, 'utf-8'))
