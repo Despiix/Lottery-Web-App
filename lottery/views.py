@@ -1,5 +1,5 @@
 # IMPORTS
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for
 from app import db
 from lottery.forms import DrawForm
 from models import Draw
@@ -39,6 +39,11 @@ def create_draw():
             if int(i) < 1 or int(i) > 60:
                 flash("The numbers must be between 1 and 60")
                 return render_template('lottery/lottery.html', form=form)
+
+        # Each number must be unique
+        if len(draw_numbers) != len(set(draw_numbers)):
+            flash('Each number must be unique')
+            return render_template('lottery/lottery.html', form=form)
         # create a new draw with the form data.
         new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False,
                         lottery_round=0, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
