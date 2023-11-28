@@ -69,6 +69,7 @@ def encrypt(data, postkey):
 
 def decrypt(data, postkey):
     return Fernet(postkey).decrypt(data).decode('utf-8')
+
 class Draw(db.Model):
     __tablename__ = 'draws'
 
@@ -100,8 +101,8 @@ class Draw(db.Model):
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
-    def view_draws(self, post_key):
-        return decrypt(self.numbers, post_key)
+    def view_draws(self, postkey):
+        return decrypt(self.numbers, postkey)
 
 def verify_password(self,password):
     return self.password == password

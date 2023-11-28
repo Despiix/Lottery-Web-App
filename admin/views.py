@@ -1,6 +1,8 @@
 # IMPORTS
 import random
 from flask import Blueprint, render_template, flash, redirect, url_for
+from sqlalchemy.orm import make_transient
+
 from app import db
 from models import User, Draw
 from users.forms import RegisterForm
@@ -87,7 +89,8 @@ def generate_winning_draw():
     winning_numbers_string = winning_numbers_string[:-1]
 
     # create a new draw object.
-    new_winning_draw = Draw(user_id=1, numbers=winning_numbers_string, master_draw=True, lottery_round=lottery_round)
+    new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
+                            lottery_round=lottery_round, postkey=current_user.postkey)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -109,6 +112,8 @@ def view_winning_draw():
 
     # if a winning draw exists
     if current_winning_draw:
+        make_transient(current_winning_draw)
+        current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
         # re-render admin page with current winning draw and lottery round
         return render_template('admin/admin.html', winning_draw=current_winning_draw, name="PLACEHOLDER FOR FIRSTNAME")
 
@@ -123,17 +128,17 @@ def view_winning_draw():
 @login_required
 def run_lottery():
 
-    # get current unplayed winning draw
+    # get current un-played winning draw
     current_winning_draw = Draw.query.filter_by(master_draw=True, been_played=False).first()
 
-    # if current unplayed winning draw exists
+    # if current un-played winning draw exists
     if current_winning_draw:
 
-        # get all unplayed user draws
+        # get all un-played user draws
         user_draws = Draw.query.filter_by(master_draw=False, been_played=False).all()
         results = []
 
-        # if at least one unplayed user draw exists
+        # if at least one un-played user draw exists
         if user_draws:
 
             # update current winning draw as played
@@ -141,13 +146,13 @@ def run_lottery():
             db.session.add(current_winning_draw)
             db.session.commit()
 
-            # for each unplayed user draw
+            # for each un-played user draw
             for draw in user_draws:
 
                 # get the owning user (instance/object)
                 user = User.query.filter_by(id=draw.user_id).first()
 
-                # if user draw matches current unplayed winning draw
+                # if user draw matches current un-played winning draw
                 if draw.numbers == current_winning_draw.numbers:
 
                     # add details of winner to list of results
@@ -159,6 +164,10 @@ def run_lottery():
 
                 # update draw as played
                 draw.been_played = True
+
+                # all draw numbers decrypted for matching against winning draw can remain decrypted in the database
+                draw.numbers = draw.view_draws(user.postkey)
+                current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
 
                 # update draw with current lottery round
                 draw.lottery_round = current_winning_draw.lottery_round
@@ -176,7 +185,7 @@ def run_lottery():
         flash("No user draws entered.")
         return admin()
 
-    # if current unplayed winning draw does not exist
+    # if current un-played winning draw does not exist
     flash("Current winning draw expired. Add new winning draw for next round.")
     return redirect(url_for('admin.admin'))
 
