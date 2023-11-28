@@ -8,7 +8,7 @@ function luckyDip() {
     while (draw.size < 6) {
         min = 1;
         max = 60;
-        value = Math.ceil(Math.random() * (max - min) + min);
+        value = Math.floor(Math.random() * (max - min+ 1) + min);
 
         // sets cannot contain duplicates so value is only added if it does not exist in set
         draw.add(value)
