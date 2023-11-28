@@ -36,7 +36,7 @@ def create_draw():
                           + str(form.number6.data))
         # create a new draw with the form data.
         new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False,
-                        lottery_round=0, postkey=current_user.postkey)
+                        lottery_round=0, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
         # add the new draw to the database
         db.session.add(new_draw)
         db.session.commit()
@@ -59,7 +59,7 @@ def view_draws():
     for draw in playable_draws:
         make_transient(draw)
         # Uses the current user's post key to decrypt the data
-        draw.numbers = draw.view_draws(current_user.postkey)
+        draw.numbers = draw.view_draws(current_user.public_key) # (current_user.postkey)
 
     # if playable draws exist
     if len(playable_draws) != 0:

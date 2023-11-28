@@ -1,10 +1,12 @@
 import pyotp
 
 from app import db, app
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from datetime import datetime
 from cryptography.fernet import Fernet
 import bcrypt
+import rsa
+import pickle
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -31,10 +33,13 @@ class User(db.Model, UserMixin):
     successfulLogins = db.Column(db.Integer, nullable=True)
 
     # Symmetric encryption
-    postkey = db.Column(db.BLOB, nullable=False )
+    # postkey = db.Column(db.BLOB, nullable=False )
 
     # Define the relationship to Draw
     draws = db.relationship('Draw')
+
+    public_key = db.Column(db.BLOB, nullable=False)
+    private_key = db.Column(db.BLOB, nullable=False)
 
     def __init__(self, email, firstname, lastname, phone, password, role, postcode, dateOfBirth):
         self.email = email
@@ -51,7 +56,10 @@ class User(db.Model, UserMixin):
         self.ipCurrent = None
         self.ipLast = None
         self.successfulLogins = 0
-        self.postkey = Fernet.generate_key()
+        # self.postkey = Fernet.generate_key()
+        publickey, privatekey = rsa.newkeys(512)
+        self.public_key = pickle.dumps(publickey)
+        self.private_key = pickle.dumps(privatekey)
 
     def verify_pin(self, pin_key):
         return pyotp.TOTP(self.pin_key).verify(pin_key)
@@ -65,11 +73,22 @@ class User(db.Model, UserMixin):
     def verify_password(self, password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password)
 
+# SYMMETRIC ENCRYPTION
+'''
 def encrypt(data, postkey):
     return Fernet(postkey).encrypt(bytes(data, 'utf-8'))
 
 def decrypt(data, postkey):
     return Fernet(postkey).decrypt(data).decode('utf-8')
+'''
+
+def encrypt(data, public_key):
+    rsa_key = pickle.loads(current_user.public_key)
+    return rsa.encrypt(data.encode(), rsa_key)
+
+def decrypt(data, private_key):
+    rsa_key = pickle.loads(current_user.private_key)
+    return rsa.decrypt(data, rsa_key).decode('utf_8')
 
 class Draw(db.Model):
     __tablename__ = 'draws'
@@ -94,16 +113,17 @@ class Draw(db.Model):
     # Lottery round that draw is used
     lottery_round = db.Column(db.Integer, nullable=False, default=0)
 
-    def __init__(self, user_id, numbers, master_draw, lottery_round, postkey):
+    # def __init__(self, user_id, numbers, master_draw, lottery_round, postkey):
+    def __init__(self, user_id, numbers, master_draw, lottery_round, public_key):
         self.user_id = user_id
-        self.numbers = encrypt(numbers, postkey)
+        self.numbers = encrypt(numbers, public_key) # (... , postkey)
         self.been_played = False
         self.matches_master = False
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
-    def view_draws(self, postkey):
-        return decrypt(self.numbers, postkey)
+    def view_draws(self, public_key): # (self, postkey)
+        return decrypt(self.numbers, public_key) # ...(self.numbers, postkey)
 
 def verify_password(self,password):
     return self.password == password

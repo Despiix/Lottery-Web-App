@@ -10,3 +10,4 @@ pyotp
 python-dotenv
 cryptography
 bcrypt
+rsa
