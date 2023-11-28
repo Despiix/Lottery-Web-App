@@ -34,6 +34,11 @@ def create_draw():
                           + str(form.number4.data) + ' '
                           + str(form.number5.data) + ' '
                           + str(form.number6.data))
+        draw_numbers = submitted_numbers.split(' ')
+        for i in draw_numbers:
+            if int(i) < 1 or int(i) > 60:
+                flash("The numbers must be between 1 and 60")
+                return render_template('lottery/lottery.html', form=form)
         # create a new draw with the form data.
         new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False,
                         lottery_round=0, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
@@ -44,7 +49,7 @@ def create_draw():
         # re-render lottery.page
         flash('Draw %s submitted.' % submitted_numbers)
         return redirect(url_for('lottery.lottery'))
-
+    flash("You must enter 6 numbers!")
     return render_template('lottery/lottery.html', name="PLACEHOLDER FOR FIRSTNAME", form=form)
 
 

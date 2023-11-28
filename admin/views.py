@@ -90,7 +90,7 @@ def generate_winning_draw():
 
     # create a new draw object.
     new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
-                            lottery_round=lottery_round, postkey=current_user.postkey)
+                            lottery_round=lottery_round, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -113,7 +113,7 @@ def view_winning_draw():
     # if a winning draw exists
     if current_winning_draw:
         make_transient(current_winning_draw)
-        current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
+        current_winning_draw.numbers = current_winning_draw.view_draws(current_user.public_key) # view_draws(current_user.postkey)
         # re-render admin page with current winning draw and lottery round
         return render_template('admin/admin.html', winning_draw=current_winning_draw, name="PLACEHOLDER FOR FIRSTNAME")
 
@@ -165,9 +165,15 @@ def run_lottery():
                 # update draw as played
                 draw.been_played = True
 
+                # SYMMETRIC ENCRYPTION
                 # all draw numbers decrypted for matching against winning draw can remain decrypted in the database
+                """
                 draw.numbers = draw.view_draws(user.postkey)
                 current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
+                """
+                draw.numbers = draw.view_draws(user.private_key)
+                current_winning_draw.numbers = current_winning_draw.view_draws(current_user.private_key)
+
 
                 # update draw with current lottery round
                 draw.lottery_round = current_winning_draw.lottery_round

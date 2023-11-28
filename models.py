@@ -88,7 +88,7 @@ def encrypt(data, public_key):
 
 def decrypt(data, private_key):
     rsa_key = pickle.loads(current_user.private_key)
-    return rsa.decrypt(data, rsa_key).decode('utf_8')
+    return rsa.decrypt(data, rsa_key).decode()
 
 class Draw(db.Model):
     __tablename__ = 'draws'
@@ -122,8 +122,8 @@ class Draw(db.Model):
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
-    def view_draws(self, public_key): # (self, postkey)
-        return decrypt(self.numbers, public_key) # ...(self.numbers, postkey)
+    def view_draws(self, private_key): # (self, postkey)
+        return decrypt(self.numbers, private_key) # (self.numbers, postkey)
 
 def verify_password(self,password):
     return self.password == password
