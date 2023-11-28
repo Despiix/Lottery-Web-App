@@ -100,6 +100,9 @@ class Draw(db.Model):
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
+    def view_draws(self, post_key):
+        return decrypt(self.numbers, post_key)
+
 def verify_password(self,password):
     return self.password == password
 

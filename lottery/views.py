@@ -5,6 +5,7 @@ from lottery.forms import DrawForm
 from models import Draw
 from flask_login import current_user, login_required
 from users.views import requires_roles
+from sqlalchemy.orm import make_transient
 
 # CONFIG
 lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')
@@ -54,6 +55,11 @@ def create_draw():
 def view_draws():
     # get all draws that have not been played [played=0]
     playable_draws = Draw.query.filter_by(been_played=False, user_id=current_user.id).all()
+
+    for draw in playable_draws:
+        make_transient(draw)
+        # Uses the current user's post key to decrypt the data
+        draw.numbers = draw.view_draws(current_user.postkey)
 
     # if playable draws exist
     if len(playable_draws) != 0:
