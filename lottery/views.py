@@ -44,9 +44,14 @@ def create_draw():
         if len(draw_numbers) != len(set(draw_numbers)):
             flash('Each number must be unique')
             return render_template('lottery/lottery.html', form=form)
+
+        # Sort in acceding order
+        draw_numbers.sort()
+
         # create a new draw with the form data.
         new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False,
                         lottery_round=0, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
+
         # add the new draw to the database
         db.session.add(new_draw)
         db.session.commit()
