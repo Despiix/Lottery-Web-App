@@ -2,6 +2,7 @@
 import logging
 import os
 
+import csp as csp
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_qrcode import QRcode
@@ -38,16 +39,24 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
 db = SQLAlchemy(app)
 qrcode = QRcode(app)
 # Setting up Talisman
-talisman = Talisman(app)
 
 csp = {
     # allow loading of the Bulma CSS framework resource
     'default-src': ['\'self\'',
                     'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'],
-    'frame-src': [...],
-    'script-src': [...],
-    'img-src': [...]
+    'frame-src': ['\'self\'',
+                  'https://www.google.com/recaptcha/',
+                  'https://recaptcha.google.com/recaptcha/'],
+    'script-src': ['\'self\'',
+                   '\'unsafe-inline\'',
+                   'https://www.google.com/recaptcha/',
+                   'https://www.gstatic.com/recaptcha/'],
+    'img-src': ['data:'],
+    'font-src': ['\'self\'',
+                 'https://fonts.gstatic.com']
 }
+
+talisman = Talisman(app, content_security_policy=csp)
 
 # LogIn Manager
 login_manager = LoginManager()
