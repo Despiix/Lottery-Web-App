@@ -8,6 +8,7 @@ from flask_qrcode import QRcode
 from flask_login import LoginManager
 from dotenv import load_dotenv
 
+
 class SecurityFilter(logging.Filter):
 
     def filter(self, record):
@@ -31,6 +32,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['RECAPTCHA_PUBLIC_KEY'] = os.getenv('RECAPTCHA_PUBLIC_KEY')
 app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
+
 
 # initialise database
 db = SQLAlchemy(app)
@@ -64,6 +66,7 @@ app.register_blueprint(admin_blueprint)
 app.register_blueprint(lottery_blueprint)
 
 
+
 # Error handling pages
 @app.errorhandler(400)
 def function_name(error):
@@ -87,4 +90,5 @@ def internal_error(error):
 
 
 if __name__ == "__main__":
-    app.run()
+    # Establishing HTTPS
+    app.run(ssl_context=('cert.pem', 'key.pem'))
