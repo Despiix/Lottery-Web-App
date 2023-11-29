@@ -6,13 +6,14 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_qrcode import QRcode
 from flask_login import LoginManager
-from dotenv import load_dotenv
+from flask_talisman import Talisman
 
 
 class SecurityFilter(logging.Filter):
 
     def filter(self, record):
         return 'SECURITY' in record.getMessage()
+
 
 # log config
 logger = logging.getLogger()
@@ -33,10 +34,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['RECAPTCHA_PUBLIC_KEY'] = os.getenv('RECAPTCHA_PUBLIC_KEY')
 app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
 
-
 # initialise database
 db = SQLAlchemy(app)
 qrcode = QRcode(app)
+# Setting up Talisman
+talisman = Talisman(app)
+
+csp = {
+    # allow loading of the Bulma CSS framework resource
+    'default-src': ['\'self\'',
+                    'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'],
+    'frame-src': [...],
+    'script-src': [...],
+    'img-src': [...]
+}
 
 # LogIn Manager
 login_manager = LoginManager()
@@ -45,14 +56,17 @@ login_manager.init_app(app)
 
 from models import User
 
+
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
 
 # HOME PAGE VIEW
 @app.route('/')
 def index():
     return render_template('main/index.html')
+
 
 # BLUEPRINTS
 # import blueprints
@@ -66,23 +80,26 @@ app.register_blueprint(admin_blueprint)
 app.register_blueprint(lottery_blueprint)
 
 
-
 # Error handling pages
 @app.errorhandler(400)
 def function_name(error):
     return render_template('error_handlers/400.html'), 400
 
+
 @app.errorhandler(403)
 def function_name(error):
     return render_template('error_handlers/403.html'), 403
+
 
 @app.errorhandler(404)
 def function_name(error):
     return render_template('error_handlers/404.html'), 404
 
+
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('error_handlers/500.html'), 500
+
 
 @app.errorhandler(503)
 def internal_error(error):
@@ -91,4 +108,5 @@ def internal_error(error):
 
 if __name__ == "__main__":
     # Establishing HTTPS
+    # Had to also edit the  flask config in order for it to work
     app.run(ssl_context=('cert.pem', 'key.pem'))

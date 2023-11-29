@@ -11,3 +11,4 @@ python-dotenv
 cryptography
 bcrypt
 rsa
+Flask-Talisman
