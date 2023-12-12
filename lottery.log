@@ -63,3 +63,6 @@
 11/29/2023 02:18:45 PM : SECURITY - User Log Out [12, harry@email.com, 127.0.0.1]
 11/29/2023 02:28:15 PM : SECURITY - New LogIn [13, despi@email.com, 127.0.0.1]
 11/29/2023 02:28:45 PM : SECURITY - User Log Out [13, despi@email.com, 127.0.0.1]
+11/29/2023 02:32:05 PM : SECURITY - New LogIn [12, harry@email.com, 127.0.0.1]
+12/08/2023 02:00:08 PM : SECURITY - New LogIn [12, harry@email.com, 127.0.0.1]
+12/12/2023 12:15:51 PM : SECURITY - New LogIn [12, harry@email.com, 127.0.0.1]

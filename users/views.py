@@ -14,12 +14,14 @@ from users.forms import RegisterForm, LoginForm, ChangePassword
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 
-# Access Control
+# Access Control - restrict access to certain roles
 def requires_roles(*roles):
     def wrapper(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
+            # check if the current user is authenticated
             if current_user.is_authenticated:
+                # if the user does not have the specified role restrict the access
                 if current_user.role not in roles:
                     # Log the unauthorized access attempt
                     logging.warning(f'Unauthorized Access [%s, %s, %s, %s]',
@@ -29,11 +31,15 @@ def requires_roles(*roles):
                                     request.remote_addr)
                     return render_template('error_handlers/403.html')
             else:
+                # add the unauthenticated attempt to access a restricted page to the log file
                 logging.warning('SECURITY - Unauthenticated User Access [%s]', request.remote_addr)
                 return render_template('error_handlers/403.html'), 403
             return f(*args, **kwargs)
+
         return wrapped
+
     return wrapper
+
 
 # VIEWS
 # view registration
@@ -105,35 +111,46 @@ def change_password():
     return render_template('users/change_password.html', form=form)
 
 
-# view user login
+# view user login, the user has 3 attempts to log in
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
+    # if the authentication attempts are not in the session initialize them
     if not session.get('authentication_attempts'):
         session['authentication_attempts'] = 0
+    # Create an instance of the Login form
     form = LoginForm()
     if form.validate_on_submit():
+        # Query the user by the email entered in the form
         user = User.query.filter_by(email=form.username.data).first()
         if not user or not user.verify_password(form.password.data) or not user.verify_post_code(
                 form.postcode.data) or not user.verify_pin(form.auth_pin.data):
+            # if the information does not match then send out a message to show how many attempts remain
             logging.warning('SECURITY - LogIn Attempt [%s, %s]', form.username.data, request.remote_addr)
+            # increment the authentication attempts
             session['authentication_attempts'] += 1
+            # if the attempts exceed 3 then lock the page and provide a reset link
             if session.get('authentication_attempts') >= 3:
                 flash(Markup('Number of incorrect login attempts exceeded.'
                              ' Please click <a href="/reset">here</a> to reset.'))
                 return render_template('users/login.html')
+            # shows the user how many attempts they have left
             attempts_remaining = 3 - session.get('authentication_attempts')
             flash('Please check your login details and try again, '
                   '{} login attempts remaining'.format(3 - session.get('authentication_attempts')))
             return render_template('users/login.html', form=form)
+        # Login the user and reset the login attempts count
         login_user(user)
         current_user.successfulLogins = 0
+        # Write the successful login to the log file
         logging.warning('SECURITY - New LogIn [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
+        # update the users login time and current / previous ip
         current_user.prevLoginDateTime = current_user.logInDateTime
         current_user.logInDateTime = datetime.now()
         current_user.ipLast = current_user.ipCurrent
         current_user.ipCurrent = request.remote_addr
         current_user.successfulLogins += 1
         db.session.commit()
+        # check the role of the user and redirect them to the correct page
         if current_user.role != 'admin':
             return redirect(url_for('lottery.lottery'))
         else:
@@ -145,7 +162,9 @@ def login():
 @requires_roles('user', 'admin')
 @login_required
 def logout():
+    # Write the logout to the logs
     logging.warning('SECURITY - User Log Out [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
+    # logout the user then redirect them to the home page
     logout_user()
     return redirect(url_for('index'))
 
@@ -155,14 +174,15 @@ def logout():
 @requires_roles('user', 'admin')
 @login_required
 def account():
+    # render the account page using the current user's info
     return render_template('users/account.html',
-                           acc_no="PLACEHOLDER FOR USER ID",
-                           email="PLACEHOLDER FOR USER EMAIL",
-                           firstname="PLACEHOLDER FOR USER FIRSTNAME",
-                           lastname="PLACEHOLDER FOR USER LASTNAME",
-                           phone="PLACEHOLDER FOR USER PHONE",
-                           postcode="PLACEHOLDER FOR POST CODE",
-                           dateOfBirth="PLACEHOLDER FOR DATE OF BIRTH")
+                           acc_no=current_user.id,
+                           email=current_user.email,
+                           firstname=current_user.firstname,
+                           lastname=current_user.lastname,
+                           phone=current_user.phone,
+                           postcode=current_user.postcode,
+                           dateOfBirth=current_user.dateofbirth)
 
 
 @users_blueprint.route('/setup_2fa')
@@ -170,6 +190,7 @@ def setup_2fa():
     # Check if username is in the app session
     if 'email' not in session:
         return redirect(url_for('index'))
+    # Retrieve the user based on the email stored in the session
     user = User.query.filter_by(email=session['email']).first()
     if not user:
         return redirect(url_for('index'))
@@ -180,6 +201,7 @@ def setup_2fa():
 
 
 @users_blueprint.route('/reset')
+# reset the count of authentication attempts
 def reset():
     session['authentication_attempts'] = 0
     return redirect(url_for('users.login'))

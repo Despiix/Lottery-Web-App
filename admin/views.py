@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for
 from sqlalchemy.orm import make_transient
 
 from app import db
-from models import User, Draw
+from models import User, Draw, decrypt
 from users.forms import RegisterForm
 from flask_login import current_user, login_required
 from users.views import requires_roles
@@ -60,7 +60,8 @@ def register():
 @requires_roles('admin')
 @login_required
 def admin():
-    return render_template('admin/admin.html', name="PLACEHOLDER FOR FIRSTNAME")
+    # render the admin homepage template and show the admin their first name
+    return render_template('admin/admin.html', name=current_user.firstname)
 
 
 # create a new winning draw
@@ -68,9 +69,8 @@ def admin():
 @requires_roles('admin')
 @login_required
 def generate_winning_draw():
-
     # get current winning draw
-    current_winning_draw = Draw.query.filter_by(master_draw=True, user_id= current_user.id).first()
+    current_winning_draw = Draw.query.filter_by(master_draw=True, user_id=current_user.id).first()
     lottery_round = 1
 
     # if a current winning draw exists
@@ -88,7 +88,8 @@ def generate_winning_draw():
 
     # create a new draw object.
     new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
-                            lottery_round=lottery_round, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
+                            lottery_round=lottery_round,
+                            public_key=current_user.public_key)  # (..., postkey=current_user.postkey)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -104,16 +105,16 @@ def generate_winning_draw():
 @requires_roles('admin')
 @login_required
 def view_winning_draw():
-
     # get winning draw from DB
-    current_winning_draw = Draw.query.filter_by(master_draw=True,been_played=False).first()
+    current_winning_draw = Draw.query.filter_by(master_draw=True, been_played=False).first()
 
     # if a winning draw exists
     if current_winning_draw:
         make_transient(current_winning_draw)
-        current_winning_draw.numbers = current_winning_draw.view_draws(current_user.public_key) # view_draws(current_user.postkey)
+        current_winning_draw.numbers = current_winning_draw.view_draws(
+            current_user.public_key)  # view_draws(current_user.postkey)
         # re-render admin page with current winning draw and lottery round
-        return render_template('admin/admin.html', winning_draw=current_winning_draw, name="PLACEHOLDER FOR FIRSTNAME")
+        return render_template('admin/admin.html', winning_draw=current_winning_draw, name=current_user.firstname)
 
     # if no winning draw exists, rerender admin page
     flash("No valid winning draw exists. Please add new winning draw.")
@@ -125,7 +126,6 @@ def view_winning_draw():
 @requires_roles('admin')
 @login_required
 def run_lottery():
-
     # get current un-played winning draw
     current_winning_draw = Draw.query.filter_by(master_draw=True, been_played=False).first()
 
@@ -149,12 +149,15 @@ def run_lottery():
 
                 # get the owning user (instance/object)
                 user = User.query.filter_by(id=draw.user_id).first()
+                # draw.numbers = draw.view_draws(user.private_key)
+
+                decrypted_draw = decrypt(draw.numbers, user.private_key)
+                winning_draw = decrypt(current_winning_draw.numbers, current_user.private_key)
 
                 # if user draw matches current un-played winning draw
-                if draw.numbers == current_winning_draw.numbers:
-
+                if decrypted_draw == winning_draw:
                     # add details of winner to list of results
-                    results.append((current_winning_draw.lottery_round, draw.numbers, draw.user_id, user.email))
+                    results.append((current_winning_draw.lottery_round, decrypted_draw, draw.user_id, user.email))
 
                     # update draw as a winning draw (this will be used to highlight winning draws in the user's
                     # lottery page)
@@ -169,12 +172,14 @@ def run_lottery():
                 draw.numbers = draw.view_draws(user.postkey)
                 current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
                 """
-                draw.numbers = draw.view_draws(user.private_key)
-                current_winning_draw.numbers = current_winning_draw.view_draws(current_user.private_key)
 
+                current_winning_draw.numbers = current_winning_draw.view_draws(current_user.private_key)
 
                 # update draw with current lottery round
                 draw.lottery_round = current_winning_draw.lottery_round
+
+                draw.numbers = decrypted_draw
+                current_winning_draw.numbers = winning_draw
 
                 # commit draw changes to DB
                 db.session.add(draw)
@@ -184,7 +189,7 @@ def run_lottery():
             if len(results) == 0:
                 flash("No winners.")
 
-            return render_template('admin/admin.html', results=results, name="PLACEHOLDER FOR FIRSTNAME")
+            return render_template('admin/admin.html', results=results, name=current_user.firstname)
 
         flash("No user draws entered.")
         return admin()
@@ -201,7 +206,7 @@ def run_lottery():
 def view_all_users():
     current_users = User.query.filter_by(role='user').all()
 
-    return render_template('admin/admin.html', name="PLACEHOLDER FOR FIRSTNAME", current_users=current_users)
+    return render_template('admin/admin.html', name=current_user.firstname, current_users=current_users)
 
 
 # view last 10 log entries
@@ -209,17 +214,18 @@ def view_all_users():
 @requires_roles('admin')
 @login_required
 def logs():
+    # Open and read the last 10 lines of the log file
     with open("lottery.log", "r") as f:
         content = f.read().splitlines()[-10:]
         content.reverse()
 
-    return render_template('admin/admin.html', logs=content, name="PLACEHOLDER FOR FIRSTNAME")
+    return render_template('admin/admin.html', logs=content, name=current_user.firstname)
+
 
 # View User Activity
 @admin_blueprint.route('/view_user_activity', methods=['POST'])
 @requires_roles('admin')
 @login_required
 def view_user_activity():
-
     current_users = User.query.filter_by(role='user').all()
-    return render_template('admin/admin.html', name="PLACEHOLDER FOR FIRSTNAME", users=current_users)
+    return render_template('admin/admin.html', name=current_user.firstname, users=current_users)

@@ -4,7 +4,14 @@ from wtforms.validators import Email, DataRequired, EqualTo, ValidationError, Le
 from datetime import datetime
 import re
 
+'''
+The beginning of the file contains custom validators to validate the forms
+which are contained in the 3 classes bellow
+'''
 
+
+# a custom validator which makes sure the characters mentioned in
+# 'excluded_chars' are not included in the input of the first and last names
 def character_check(form, field):
     excluded_chars = "* ? ! ' ^ + % & / ( ) = } ] [ { $ # @ < >"
 
@@ -13,12 +20,16 @@ def character_check(form, field):
             raise ValidationError(f"Character {char} is not allowed. ")
 
 
+# another custom validator which checks that
+# the input of the phone number is in the correct format
 def validate_phone(form, field):
     form.phone_validation_already_called = True  # It has been called, Flag = True
     if not re.match(r'^\d{4}-\d{3}-\d{4}$', field.data):
         raise ValidationError("Phone number must be in XXXX-XXX-XXXX format")
 
 
+# a custom validator that makes sure the input for
+# the date of birth (DOB) is in the correct format and follows the rules
 def validate_DOB(form, field):
     if not re.match(r'^\d{2}/\d{2}/\d{4}$', field.data):
         raise ValidationError("Date of Birth must be in DD/MM/YYYY format")
@@ -47,7 +58,7 @@ def validate_DOB(form, field):
         is_leap_year = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
         if (is_leap_year and day > 29) or (not is_leap_year and day > 28):
             raise ValidationError("Invalid date: February has 28 days or 29 in a leap year")
-
+    # Check if the format is correct and if the date is in the future
     try:
         dob = datetime.strptime(field.data, '%d/%m/%Y')
     except ValueError:
@@ -58,11 +69,13 @@ def validate_DOB(form, field):
         raise ValidationError("Date of Birth cannot be in the future")
 
 
+# A custom validator to check the format of the post code
 def validate_post_code(form, field):
     if not re.match(r"^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z]{2}$", field.data):
         raise ValidationError("Invalid postcode format. Expected formats: 'XY YXX', 'XYY YXX', 'XXY YXX'.")
 
 
+# A custom validator to check if the format of the password is correct
 def validate_password(form, password):
     if len(password.data) > 12 or len(password.data) < 6:
         raise ValidationError('Password length must be between 6 and 12 characters')
@@ -73,7 +86,9 @@ def validate_password(form, password):
                               ' 1 uppercase letter and 1 special character')
 
 
+# Defines the fields of the register
 class RegisterForm(FlaskForm):
+    # define the fields and use the custom validators created above to ensure correct input
     email = EmailField(validators=[DataRequired(), Email()])
     firstname = StringField(validators=[DataRequired(), character_check])
     lastname = StringField(validators=[DataRequired(), character_check])
@@ -87,6 +102,7 @@ class RegisterForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
+    # define the fields and use the custom validators created above to ensure correct input
     username = StringField(validators=[DataRequired(), Email()])
     password = PasswordField(validators=[DataRequired()])
     postcode = StringField(validators=[DataRequired(), validate_post_code])
@@ -94,7 +110,10 @@ class LoginForm(FlaskForm):
     recaptcha = RecaptchaField()
     submit = SubmitField()
 
+
+# Used to create a page where the user can change their password
 class ChangePassword(FlaskForm):
+    # define the fields and use the custom validators created above to ensure correct input
     current_password = PasswordField(validators=[DataRequired()])
     new_password = PasswordField(validators=[DataRequired(), validate_password])
     confirm_new_password = PasswordField(validators=[DataRequired(), EqualTo('new_password',

@@ -10,13 +10,15 @@ from flask_login import LoginManager
 from flask_talisman import Talisman
 
 
+# Define a custom logging filter focused
+# on log messages for security purposes
 class SecurityFilter(logging.Filter):
 
     def filter(self, record):
         return 'SECURITY' in record.getMessage()
 
 
-# log config
+# log settings configuration
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler('lottery.log', 'a')
@@ -26,7 +28,7 @@ formatter = logging.Formatter('%(asctime)s : %(message)s', '%m/%d/%Y %I:%M:%S %p
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-# CONFIG
+# Flask app config
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'LongAndRandomSecretKey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lottery.db'
@@ -38,8 +40,8 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
 # initialise database
 db = SQLAlchemy(app)
 qrcode = QRcode(app)
-# Setting up Talisman
 
+# Setting up Talisman for content security policy
 csp = {
     # allow loading of the Bulma CSS framework resource
     'default-src': ['\'self\'',
@@ -58,14 +60,14 @@ csp = {
 
 talisman = Talisman(app, content_security_policy=csp)
 
-# LogIn Manager
+# LogIn Manager for user authentication
 login_manager = LoginManager()
 login_manager.login_view = 'users/login'
 login_manager.init_app(app)
 
 from models import User
 
-
+# user loader function
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -89,7 +91,7 @@ app.register_blueprint(admin_blueprint)
 app.register_blueprint(lottery_blueprint)
 
 
-# Error handling pages
+# Error handling pages for many error codes
 @app.errorhandler(400)
 def function_name(error):
     return render_template('error_handlers/400.html'), 400
@@ -117,5 +119,5 @@ def internal_error(error):
 
 if __name__ == "__main__":
     # Establishing HTTPS
-    # Had to also edit the  flask config in order for it to work
+    # Had to also edit the flask config in order for it to work
     app.run(ssl_context=('cert.pem', 'key.pem'))

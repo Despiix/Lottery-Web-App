@@ -29,11 +29,11 @@ def create_draw():
 
     if form.validate_on_submit():
         submitted_numbers = (str(form.number1.data) + ' '
-                          + str(form.number2.data) + ' '
-                          + str(form.number3.data) + ' '
-                          + str(form.number4.data) + ' '
-                          + str(form.number5.data) + ' '
-                          + str(form.number6.data))
+                             + str(form.number2.data) + ' '
+                             + str(form.number3.data) + ' '
+                             + str(form.number4.data) + ' '
+                             + str(form.number5.data) + ' '
+                             + str(form.number6.data))
         draw_numbers = submitted_numbers.split(' ')
         for i in draw_numbers:
             if int(i) < 1 or int(i) > 60:
@@ -48,9 +48,9 @@ def create_draw():
         # Sort in acceding order
         draw_numbers.sort()
 
-        # create a new draw with the form data.
+        # create a new draw with the form data the symmetric encryption is written next to it
         new_draw = Draw(user_id=current_user.id, numbers=submitted_numbers, master_draw=False,
-                        lottery_round=0, public_key=current_user.public_key) # (..., postkey=current_user.postkey)
+                        lottery_round=0, public_key=current_user.public_key)  # (..., postkey=current_user.postkey)
 
         # add the new draw to the database
         db.session.add(new_draw)
@@ -60,7 +60,7 @@ def create_draw():
         flash('Draw %s submitted.' % submitted_numbers)
         return redirect(url_for('lottery.lottery'))
     flash("You must enter 6 numbers!")
-    return render_template('lottery/lottery.html', name="PLACEHOLDER FOR FIRSTNAME", form=form)
+    return render_template('lottery/lottery.html', name=current_user.firstname, form=form)
 
 
 # view all draws that have not been played
@@ -73,8 +73,8 @@ def view_draws():
 
     for draw in playable_draws:
         make_transient(draw)
-        # Uses the current user's post key to decrypt the data
-        draw.numbers = draw.view_draws(current_user.public_key) # (current_user.postkey)
+        # Uses the current user's post key to decrypt the data the symmetric encryption is written next to it
+        draw.numbers = draw.view_draws(current_user.private_key)  # ...(current_user.postkey)
 
     # if playable draws exist
     if len(playable_draws) != 0:
@@ -113,5 +113,3 @@ def play_again():
 
     flash("All played draws deleted.")
     return lottery()
-
-
