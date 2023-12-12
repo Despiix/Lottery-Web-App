@@ -84,7 +84,7 @@ def register():
 
 
 @users_blueprint.route('/change password', methods=['GET', 'POST'])
-@requires_roles('user')
+@requires_roles('user', 'admin')
 @login_required
 def change_password():
     form = ChangePassword()
@@ -182,7 +182,7 @@ def account():
                            lastname=current_user.lastname,
                            phone=current_user.phone,
                            postcode=current_user.postcode,
-                           dateOfBirth=current_user.dateofbirth)
+                           dateOfBirth=current_user.dateOfBirth)
 
 
 @users_blueprint.route('/setup_2fa')

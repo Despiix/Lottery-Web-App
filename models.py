@@ -94,13 +94,13 @@ def decrypt(data, postkey):
 
 # Encrypt the provided data using the RSA public key
 def encrypt(data, public_key):
-    rsa_key = pickle.loads(current_user.public_key)
+    rsa_key = pickle.loads(public_key)
     return rsa.encrypt(data.encode(), rsa_key)
 
 
 # Decrypt the provided data using the RSA private key
 def decrypt(data, private_key):
-    rsa_key = pickle.loads(current_user.private_key)
+    rsa_key = pickle.loads(private_key)
     return rsa.decrypt(data, rsa_key).decode()
 
 

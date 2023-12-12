@@ -112,7 +112,7 @@ def view_winning_draw():
     if current_winning_draw:
         make_transient(current_winning_draw)
         current_winning_draw.numbers = current_winning_draw.view_draws(
-            current_user.public_key)  # view_draws(current_user.postkey)
+            current_user.private_key)  # view_draws(current_user.postkey)
         # re-render admin page with current winning draw and lottery round
         return render_template('admin/admin.html', winning_draw=current_winning_draw, name=current_user.firstname)
 
@@ -172,8 +172,6 @@ def run_lottery():
                 draw.numbers = draw.view_draws(user.postkey)
                 current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
                 """
-
-                current_winning_draw.numbers = current_winning_draw.view_draws(current_user.private_key)
 
                 # update draw with current lottery round
                 draw.lottery_round = current_winning_draw.lottery_round
