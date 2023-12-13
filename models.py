@@ -11,6 +11,7 @@ Symmetric encryption is commented out throughout this file as well as, lottery/v
 some have comments explaining the correct line they should be in the code!
 '''
 
+
 # Define the User class model
 class User(db.Model, UserMixin):
     __tablename__ = 'users'  # Define the table name in the database
@@ -30,9 +31,9 @@ class User(db.Model, UserMixin):
     dateOfBirth = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), nullable=False, default='user')
     registrationDate = db.Column(db.DateTime, nullable=False)
-    logInDateTime = db.Column(db.DateTime, nullable=False)
-    prevLoginDateTime = db.Column(db.DateTime, nullable=False)
-    ipCurrent = db.Column(db.String(100), nullable=False)
+    logInDateTime = db.Column(db.DateTime, nullable=True)
+    prevLoginDateTime = db.Column(db.DateTime, nullable=True)
+    ipCurrent = db.Column(db.String(100), nullable=True)
     ipLast = db.Column(db.String(100), nullable=True)
     successfulLogins = db.Column(db.Integer, nullable=True)
 
@@ -62,6 +63,7 @@ class User(db.Model, UserMixin):
         self.ipCurrent = None
         self.ipLast = None
         self.successfulLogins = 0
+        # Symmetric Encryption
         # self.postkey = Fernet.generate_key()
         publickey, privatekey = rsa.newkeys(512)
         self.public_key = pickle.dumps(publickey)
@@ -130,23 +132,26 @@ class Draw(db.Model):
     # Lottery round that draw is used
     lottery_round = db.Column(db.Integer, nullable=False, default=0)
 
+    # Symmetric Encryption
     # def __init__(self, user_id, numbers, master_draw, lottery_round, postkey):
     def __init__(self, user_id, numbers, master_draw, lottery_round, public_key):
         self.user_id = user_id
-        self.numbers = encrypt(numbers, public_key)  # (... , postkey)
+        self.numbers = encrypt(numbers, public_key)  # self.numbers = encrypt(numbers , postkey)
         self.been_played = False
         self.matches_master = False
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
     # method to temporarily decrypt and view draws
-    def view_draws(self, private_key):  # (self, postkey)
-        return decrypt(self.numbers, private_key)  # (self.numbers, postkey)
+    # the comments on the side are for symmetric encryption
+    def view_draws(self, private_key):  # def view_draws(self, postkey)
+        return decrypt(self.numbers, private_key)  # return decrypt(self.numbers, postkey)
 
 
 # helper method to verify the password
 def verify_password(self, password):
     return self.password == password
+
 
 # method to initialise the db
 def init_db():
@@ -158,8 +163,11 @@ def init_db():
                      password='Admin1!',
                      firstname='Alice',
                      lastname='Jones',
+                     dateOfBirth='06/10/2003',
                      phone='0191-123-4567',
-                     role='admin')
+                     role='admin',
+                     postcode='NE1 5AT'
+                     )
 
         db.session.add(admin)
         db.session.commit()

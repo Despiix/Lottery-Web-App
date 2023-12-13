@@ -121,7 +121,14 @@ def internal_error(error):
     return render_template('error_handlers/503.html'), 503
 
 
+'''     
+    IMPORTANT INSTRUCTIONS!
+
+    - For HTTPS to work you may need to add --cert=cert.pem --key=key.pem in the project's configuration
+    - When running the command 'from app import db' in the console if an error 
+      occurs run the project/pycharm as administrator
+'''
+
 if __name__ == "__main__":
     # Establishing HTTPS
-    # Had to also edit the flask config in order for it to work
     app.run(ssl_context=('cert.pem', 'key.pem'))

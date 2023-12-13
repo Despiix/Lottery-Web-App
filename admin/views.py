@@ -89,7 +89,7 @@ def generate_winning_draw():
 
     # create a new draw object.
     new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True,
-                            lottery_round=lottery_round,
+                            lottery_round=lottery_round,         # Symmetric Encryption
                             public_key=current_user.public_key)  # (..., postkey=current_user.postkey)
 
     # add the new winning draw to the database
@@ -153,7 +153,6 @@ def run_lottery():
 
                 # get the owning user (instance/object)
                 user = User.query.filter_by(id=draw.user_id).first()
-                # draw.numbers = draw.view_draws(user.private_key)
 
                 # asymmetric decryption - decrypts the draw
                 draw.numbers = draw.view_draws(user.private_key)
@@ -170,10 +169,12 @@ def run_lottery():
                 # update draw as played
                 draw.been_played = True
 
-                # SYMMETRIC ENCRYPTION
-                # all draw numbers decrypted for matching against winning draw can remain decrypted in the database
-                # !Important! - first line should be at line 158 and second line should be at line 148
                 """
+                SYMMETRIC ENCRYPTION
+                
+                All draw numbers decrypted for matching against winning draw can remain decrypted in the database
+                !Important! - first line should be at line 158 and second line should be at line 148
+                
                 draw.numbers = draw.view_draws(user.postkey)
                 current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
                 """
