@@ -101,7 +101,7 @@ def encrypt(data, public_key):
 # Decrypt the provided data using the RSA private key
 def decrypt(data, private_key):
     rsa_key = pickle.loads(private_key)
-    return rsa.decrypt(data, rsa_key).decode()
+    return rsa.decrypt(data, rsa_key).decode("utf-8")
 
 
 class Draw(db.Model):

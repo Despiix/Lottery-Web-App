@@ -144,6 +144,9 @@ def run_lottery():
             db.session.add(current_winning_draw)
             db.session.commit()
 
+            # asymmetric decryption - decrypts the current winning draw
+            current_winning_draw.numbers = current_winning_draw.view_draws(current_user.private_key)
+
             # for each un-played user draw
             for draw in user_draws:
 
@@ -151,13 +154,13 @@ def run_lottery():
                 user = User.query.filter_by(id=draw.user_id).first()
                 # draw.numbers = draw.view_draws(user.private_key)
 
-                decrypted_draw = decrypt(draw.numbers, user.private_key)
-                winning_draw = decrypt(current_winning_draw.numbers, current_user.private_key)
+                # asymmetric decryption - decrypts the draw
+                draw.numbers = draw.view_draws(user.private_key)
 
                 # if user draw matches current un-played winning draw
-                if decrypted_draw == winning_draw:
+                if draw.numbers == current_winning_draw.numbers:
                     # add details of winner to list of results
-                    results.append((current_winning_draw.lottery_round, decrypted_draw, draw.user_id, user.email))
+                    results.append((current_winning_draw.lottery_round, draw.numbers, draw.user_id, user.email))
 
                     # update draw as a winning draw (this will be used to highlight winning draws in the user's
                     # lottery page)
@@ -168,6 +171,7 @@ def run_lottery():
 
                 # SYMMETRIC ENCRYPTION
                 # all draw numbers decrypted for matching against winning draw can remain decrypted in the database
+                # !Important! - first line should be at line 158 and second line should be at line 148
                 """
                 draw.numbers = draw.view_draws(user.postkey)
                 current_winning_draw.numbers = current_winning_draw.view_draws(current_user.postkey)
@@ -175,9 +179,6 @@ def run_lottery():
 
                 # update draw with current lottery round
                 draw.lottery_round = current_winning_draw.lottery_round
-
-                draw.numbers = decrypted_draw
-                current_winning_draw.numbers = winning_draw
 
                 # commit draw changes to DB
                 db.session.add(draw)

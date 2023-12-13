@@ -99,7 +99,7 @@ def change_password():
                 current_user.password = form.new_password.data
                 db.session.commit()
 
-                flash('Your password has been updated.')
+                flash('Password updated successfully!')
                 return redirect(url_for('users.account'))
 
             flash('New password cannot be the same as previous one')
