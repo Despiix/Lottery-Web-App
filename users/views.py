@@ -1,4 +1,5 @@
 # IMPORTS
+import bcrypt
 from flask import Blueprint, render_template, flash, redirect, url_for, session, request
 from flask_login import logout_user, login_user, current_user, login_required
 from markupsafe import Markup
@@ -93,17 +94,19 @@ def change_password():
 
         # Verify current password
         if current_user.verify_password(form.current_password.data):
+            # Check if the new password is equal to the prev one
+            # The new password needs to be hashed in order to check
+            if bcrypt.checkpw(form.new_password.data.encode('utf-8'), current_user.password):
+                flash('New password cannot be the same as previous one')
+                return render_template('users/change_password.html', form=form)
 
-            if current_user.password != form.new_password.data:
-                # Update user's password
-                current_user.password = form.new_password.data
-                db.session.commit()
+            # Hash the new password that is added to the db
+            current_user.password = bcrypt.hashpw(form.new_password.data.encode('utf-8'), bcrypt.gensalt())
+            # Update user's password
+            db.session.commit()
 
-                flash('Password updated successfully!')
-                return redirect(url_for('users.account'))
-
-            flash('New password cannot be the same as previous one')
-            return render_template('users/change_password.html', form=form)
+            flash('Password updated successfully!')
+            return redirect(url_for('users.account'))
 
         flash('Current password is incorrect.')
         return render_template('users/change_password.html', form=form)
