@@ -143,7 +143,6 @@ def login():
             return render_template('users/login.html', form=form)
         # Login the user and reset the login attempts count
         login_user(user)
-        current_user.successfulLogins = 0
         # Write the successful login to the log file
         logging.warning('SECURITY - New LogIn [%s, %s, %s]', current_user.id, current_user.email, request.remote_addr)
         # update the users login time and current / previous ip
@@ -151,7 +150,7 @@ def login():
         current_user.logInDateTime = datetime.now()
         current_user.ipLast = current_user.ipCurrent
         current_user.ipCurrent = request.remote_addr
-        current_user.successfulLogins += 1
+        current_user.successfulLogins += 1  # Increment the successful logins to be viewed in the admin page
         db.session.commit()
         # check the role of the user and redirect them to the correct page
         if current_user.role != 'admin':
