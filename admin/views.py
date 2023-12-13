@@ -50,6 +50,7 @@ def register():
         db.session.commit()
 
         # sends user to login page
+        flash('New admin registered successfully!')
         return redirect(url_for('admin.admin'))
     # if request method is GET or form not valid re-render signup page
     return render_template('admin/admin_registration.html', form=form)
