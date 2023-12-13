@@ -141,3 +141,7 @@
 12/13/2023 02:41:47 PM : SECURITY - New LogIn [13, despi@email.com, 127.0.0.1]
 12/13/2023 02:52:32 PM : SECURITY - User Log Out [13, despi@email.com, 127.0.0.1]
 12/13/2023 02:55:26 PM : SECURITY - New LogIn [15, admin@email.com, 127.0.0.1]
+12/13/2023 04:35:17 PM : SECURITY - User Log Out [15, admin@email.com, 127.0.0.1]
+12/13/2023 04:36:16 PM : SECURITY - New User Registration [random@email.com, 127.0.0.1]
+12/13/2023 04:38:19 PM : SECURITY - LogIn Attempt [despi@email.com, 127.0.0.1]
+12/13/2023 04:38:52 PM : SECURITY - New LogIn [13, despi@email.com, 127.0.0.1]
