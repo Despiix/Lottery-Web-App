@@ -102,7 +102,7 @@ def change_password():
 
             # Hash the new password that is added to the db
             current_user.password = bcrypt.hashpw(form.new_password.data.encode('utf-8'), bcrypt.gensalt())
-            # Update user's password
+            # Update user's password in the db
             db.session.commit()
 
             flash('Password updated successfully!')
