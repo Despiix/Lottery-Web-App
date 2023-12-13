@@ -1,5 +1,4 @@
 import pyotp
-
 from app import db, app
 from flask_login import UserMixin, current_user
 from datetime import datetime
@@ -7,6 +6,10 @@ import bcrypt  # Import for hashing passwords
 import rsa  # Import for asymmetric encryption
 import pickle  # Import pickle for serializing and de-serializing Python object structures
 
+'''
+Symmetric encryption is commented out throughout this file as well as, lottery/views and admin/views
+some have comments explaining the correct line they should be in the code!
+'''
 
 # Define the User class model
 class User(db.Model, UserMixin):

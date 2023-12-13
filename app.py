@@ -1,7 +1,6 @@
 # IMPORTS
 import logging
 import os
-
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
@@ -49,6 +48,7 @@ csp = {
     # allow loading of the Bulma CSS framework resource
     'default-src': ['\'self\'',
                     'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'],
+    # allows the use of reCAPTCHA checkbox
     'frame-src': ['\'self\'',
                   'https://www.google.com/recaptcha/',
                   'https://recaptcha.google.com/recaptcha/'],
