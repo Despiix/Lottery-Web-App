@@ -2,7 +2,6 @@
 import logging
 import os
 
-import csp as csp
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
@@ -70,6 +69,7 @@ login_manager.login_view = 'users/login'
 login_manager.init_app(app)
 
 from models import User
+
 
 # user loader function
 @login_manager.user_loader
